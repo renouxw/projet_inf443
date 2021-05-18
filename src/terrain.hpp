@@ -10,7 +10,7 @@ struct perlin_noise_parameters
         float terrain_height = 0.25f;
 };
 
-vcl::vec3 evaluate_terrain(float u, float v, perlin_noise_parameters const& parameters);
+vcl::vec3 evaluate_terrain(float u, float v);
 vcl::mesh create_terrain();
 
 std::vector<vcl::vec3> generate_positions_on_terrain(int N);

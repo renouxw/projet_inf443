@@ -7,7 +7,7 @@ using namespace std;
 perlin_noise_parameters parameters;
 
 // Evaluate 3D position of the terrain for any (u,v) \in [0,1]
-vec3 evaluate_terrain(float u, float v,perlin_noise_parameters const& parameters)
+vec3 evaluate_terrain(float u, float v)
 {
     float const x = 20*(u-0.5f);
     float const y = 20*(v-0.5f);
@@ -49,7 +49,7 @@ mesh create_terrain()
             const float v = kv/(N-1.0f);
 
             // Compute the local surface function
-            vec3 const p = evaluate_terrain(u,v,parameters);
+            vec3 const p = evaluate_terrain(u,v);
 
             // Store vertex coordinates
             terrain.position[kv+N*ku] = p;
@@ -82,7 +82,7 @@ std::vector<vcl::vec3> generate_positions_on_terrain(int N){
     std::vector<vcl::vec3> pos;
 
     for (int k=0; k<N; k++){
-        pos.push_back(vec3(evaluate_terrain(rand_interval(0,1),rand_interval(0,1), parameters)));
+        pos.push_back(vec3(evaluate_terrain(rand_interval(0,1),rand_interval(0,1))));
     }
     return pos;
 }
