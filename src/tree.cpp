@@ -110,7 +110,7 @@ mesh create_champi()
     trunk.color.fill({1.f, 1.f, 1.f});
 
     mesh foliage = create_cone(4*r, 6*r, 0.0f); // top-cone
-    foliage.position += vec3(0,0,h);                 // place foliage at the top of the trunk
+    foliage.position += vec3(0,0,h);      // place foliage at the top of the trunk
     foliage.color.fill({1.f, 0.f, 0.f});
 
     // The tree is composted of the trunk and the foliage
@@ -118,5 +118,23 @@ mesh create_champi()
     champi.push_back(foliage);
 
     return champi;
+}
+
+mesh create_street_lamp(){
+
+    float height = 1.0f;
+
+    //create basement
+    mesh socle = create_tree_trunk_cylinder(0.08f,0.3f);
+    socle.color.fill({0,0,0});
+
+    //create pole
+    mesh pole = create_tree_trunk_cylinder(0.05f,1.0f);
+    pole.color.fill({0,0,0});
+
+    socle.push_back(pole);
+
+    return socle;
+
 }
 
