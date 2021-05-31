@@ -12,9 +12,9 @@ vec3 evaluate_terrain(float u, float v)
     float const x = 20*(u-0.5f);
     float const y = 20*(v-0.5f);
 
-    std::array<vec2, 4> const p = {vec2{0.f,0.f},vec2{1.5,0.5},vec2{0.2,0.4},vec2{0.8,0.7}};
-    vcl::buffer_stack<float, 4> const h = {3,-1.5,1,2};
-    vcl::buffer_stack<float, 4> const sigma = {0.2,0.15,0.1,0.2};
+    std::array<vec2, 4> const p = {vec2{0.3f,0.2f},vec2{0.5,0.5},vec2{0.2,0.8},vec2{0.8,0.4}};
+    vcl::buffer_stack<float, 4> const h = {1.5,-0.5,0.9,1.5};
+    vcl::buffer_stack<float, 4> const sigma = {0.2,0.3,0.1,0.2};
 
     float z = 0;
 
@@ -29,6 +29,7 @@ vec3 evaluate_terrain(float u, float v)
       }
     return {x,y,z};
 }
+
 
 mesh create_terrain()
 {
@@ -82,7 +83,7 @@ std::vector<vcl::vec3> generate_positions_on_terrain(int N){
     std::vector<vcl::vec3> pos;
 
     for (int k=0; k<N; k++){
-        pos.push_back(vec3(evaluate_terrain(rand_interval(0,1),rand_interval(0,1))));
+        pos.push_back(vec3(evaluate_terrain(rand_interval(0.05,0.95),rand_interval(0.05,0.95))));
     }
     return pos;
 }

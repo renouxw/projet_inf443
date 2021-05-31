@@ -15,8 +15,9 @@ vcl::vec3 cardinal_spline_interpolation(float t, float t0, float t1, float t2, f
 size_t find_index_of_interval(float t, vcl::buffer<float> const& intervals);
 
 
-vec3 const interpolation(float t, buffer<vec3> const& key_positions, buffer<float> const& key_times)
+vec3 const interpolation(float t, buffer<vec3> key_positions, buffer<float> key_times)
 {
+
     // Find idx such that key_times[idx] < t < key_times[idx+1]
     int const idx = find_index_of_interval(t, key_times);
 
@@ -74,17 +75,13 @@ vec3 linear_interpolation(float t, float t1, float t2, const vec3& p1, const vec
 
 vec3 cardinal_spline_interpolation(float t, float t0, float t1, float t2, float t3, vec3 const& p0, vec3 const& p1, vec3 const& p2, vec3 const& p3, float K)
 {
-
-    float s = (t-t1)/(t2-t1);
-
-    vec3 const d0 = 2*K*(p2-p0)/(t2-t0);
-    vec3 const d1 = 2*K*(p3-p1)/(t3-t1);
-
-    float s3 = s*s*s;
-    float s2 = s*s;
-
-    return (2*s3 - 3*s2 + 1)*p1 + (s3 - 2*s2 + s)*d0 + (3*s2 - 2*s3)*p2 + (s3-s2)*d1;
+ float const s = (t-t1)/(t2-t1);
+ vec3 const d1 = 2*K*(p2-p0)/(t2-t0);
+ vec3 const d2 = 2*K*(p3-p1)/(t3-t1);
+ vec3 const p = ( 2*s*s*s - 3*s*s + 1 )*p1 + (s*s*s - 2*s*s + s)*d1 + ( 3*s*s - 2*s*s*s )*p2 + ( s*s*s - s*s )*d2;
+ return p;
 }
+
 
 size_t find_index_of_interval(float t, buffer<float> const& intervals)
 {

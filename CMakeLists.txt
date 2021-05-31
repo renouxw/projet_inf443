@@ -15,7 +15,7 @@ project(${executable_name})
 include_directories("src")
 
 # Include files from the library (vcl as well as external dependencies)
-include("./library/CMakeLists.txt")
+include("../../../library/CMakeLists.txt")
 
  
 
