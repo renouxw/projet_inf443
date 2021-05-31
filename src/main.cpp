@@ -505,7 +505,7 @@ void display_scene()
 
         // Numerical integration
         if (p[2] < evaluate_terrain((p[0]/20)+0.5f, (p[1]/20)+0.5f).z + 0.05f){
-            v = vec3(0.9*v.x, 0.9*v.y, - 0.7*v.z);
+            v = vec3(0.9*v.x, 0.9*v.y, - 0.5*v.z);
             //vec3 u = shader_mesh.fragment.normal;
             p[2] = evaluate_terrain((p[0]/20)+0.5f, (p[1]/20)+0.5f).z +0.05f;
         }
