@@ -37,10 +37,8 @@ hierarchy_mesh_drawable create_birds()
     vec3 const pt13 = vec3(0.4,-0.08,0);
     //position arm_left
 
-    vec3 const pt01 = vec3(0.15,-0.08,0);
-    vec3 const pt1 = vec3(0.15,-0.081,0);
-    vec3 const pt121 = vec3(0.0,0.08,0);
-    vec3 const pt131 = vec3(0.0,-0.08,0);
+    vec3 const pt01 = vec3(0.55,-0.08,0);
+    vec3 const pt1 = vec3(0.55,-0.081,0);
 
     //position shoulder_right
     vec3 const pt20 = vec3(-0.05,-0.1,0);
@@ -48,20 +46,18 @@ hierarchy_mesh_drawable create_birds()
     vec3 const pt22 = vec3(-0.4,0.08,0);
     vec3 const pt23 = vec3(-0.4,-0.08,0);
     //position arm_right
-    vec3 const pt02 = vec3(-0.15,-0.08,0);
-    vec3 const pt2 = vec3(-0.15,-0.081,0);
-    vec3 const pt221 = vec3(0.0,0.08,0);
-    vec3 const pt231 = vec3(0.0,-0.08,0);
+    vec3 const pt02 = vec3(-0.55,-0.08,0);
+    vec3 const pt2 = vec3(-0.55,-0.081,0);
 
 
         // Shoulder part and arm are displayed as cylinder
     mesh_drawable shoulder_left = mesh_drawable(mesh_primitive_quadrangle(pt10,pt11,pt12,pt13));
-    mesh_drawable arm_left = mesh_drawable(mesh_primitive_quadrangle(pt01,pt1,pt121,pt131));
+    mesh_drawable arm_left = mesh_drawable(mesh_primitive_quadrangle(pt01,pt1,pt12,pt13));
     arm_left.shading.color = {0,0,0};
     shoulder_left.shading.color = {0,0,0};
 
     mesh_drawable shoulder_right = mesh_drawable(mesh_primitive_quadrangle(pt20,pt21,pt22,pt23));
-    mesh_drawable arm_right = mesh_drawable(mesh_primitive_quadrangle(pt02,pt2,pt221,pt231));
+    mesh_drawable arm_right = mesh_drawable(mesh_primitive_quadrangle(pt02,pt2,pt22,pt23));
     arm_right.shading.color = {0,0,0};
     shoulder_right.shading.color = {0,0,0};
 
@@ -87,11 +83,11 @@ hierarchy_mesh_drawable create_birds()
 
         // Set the left part of the body arm: shoulder-elbow-arm
     hierarchy.add(shoulder_left, "shoulder_left", "body", {0,0,0}); // extremity of the spherical body
-    hierarchy.add(arm_left, "arm_left", "shoulder_left", {0.4f,0,0});
+    hierarchy.add(arm_left, "arm_left", "shoulder_left");
 
         // Set the right part of the body arm: similar to the left part with a symmetry in x direction
     hierarchy.add(shoulder_right, "shoulder_right", "body", {0,0,0});
-    hierarchy.add(arm_right, "arm_right", "shoulder_right", {-0.4f,0,0});
+    hierarchy.add(arm_right, "arm_right", "shoulder_right");
 
     return hierarchy;
 }

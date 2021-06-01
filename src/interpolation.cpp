@@ -40,7 +40,7 @@ vec3 const interpolation(float t, buffer<vec3> key_positions, buffer<float> key_
     return p;
 }
 
-float const direction(float t, buffer<vec3> const& key_positions, buffer<float> const& key_times, const vec3& dir){
+float direction(float t, buffer<vec3> const& key_positions, buffer<float> const& key_times, const vec3& dir){
 
     // Find idx such that key_times[idx] < t < key_times[idx+1]
     int const idx = find_index_of_interval(t, key_times);
@@ -52,25 +52,6 @@ float const direction(float t, buffer<vec3> const& key_positions, buffer<float> 
     float prodnorm = sqrt((p1.x-p2.x)*(p1.x-p2.x) + dir.x*dir.x + (p1.y-p2.y)*(p1.y-p2.y) + dir.y*dir.y + (p1.z-p2.z)*(p1.z-p2.z) + dir.z*dir.z);
 
     return acos(ps/prodnorm);
-}
-
-vec3 const new_direction(float t, buffer<vec3> const& key_positions, buffer<float> const& key_times){
-    // Find idx such that key_times[idx] < t < key_times[idx+1]
-    int const idx = find_index_of_interval(t, key_times);
-
-    vec3 const& p1 = key_positions[idx]; // = p_i
-    vec3 const& p2 = key_positions[idx+1]; // = p_{i+1}
-
-    return vec3(p2.x-p1.x, p2.y-p1.y, 0);
-}
-
-
-vec3 linear_interpolation(float t, float t1, float t2, const vec3& p1, const vec3& p2)
-{
-    float const alpha = (t-t1)/(t2-t1);
-    vec3 const p = (1-alpha)*p1 + alpha*p2;
-
-    return p;
 }
 
 vec3 cardinal_spline_interpolation(float t, float t0, float t1, float t2, float t3, vec3 const& p0, vec3 const& p1, vec3 const& p2, vec3 const& p3, float K)

@@ -83,7 +83,7 @@ std::vector<vcl::vec3> generate_positions_on_terrain(int N){
     std::vector<vcl::vec3> pos;
 
     for (int k=0; k<N; k++){
-        pos.push_back(vec3(evaluate_terrain(rand_interval(0.05,0.95),rand_interval(0.05,0.95))));
+        pos.push_back(vec3(evaluate_terrain(rand_interval(0.05,0.95),rand_interval(0.05,0.95))) + vec3(0,0,-0.05));
     }
     return pos;
 }

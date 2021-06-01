@@ -1,4 +1,4 @@
- #include "vcl/vcl.hpp"
+#include "vcl/vcl.hpp"
 #include <iostream>
 #include "terrain.hpp"
 #include "birds.hpp"
@@ -73,13 +73,9 @@ void display_interface();
 mesh terrain_visual;
 
 mesh_drawable billboard_grass;
-mesh_drawable billboard_flower;
 mesh_drawable terrain;
-mesh_drawable trunk;
 mesh_drawable street_lamp;
 mesh_drawable tore;
-mesh_drawable foliage;
-mesh_drawable champi;
 mesh_drawable fontaine;
 std::vector<vcl::vec3> tree_position1;
 std::vector<vcl::vec3> tree_position2;
@@ -93,11 +89,9 @@ mesh_drawable sphere_keyframe;   // sphere used to display the key positions
 curve_drawable polygon_keyframe; // Display the segment between key positions
 trajectory_drawable trajectory;  // Temporary storage and display of the interpolated trajectory
 
-hierarchy_mesh_drawable hierarchy1;
-hierarchy_mesh_drawable hierarchy2;
+hierarchy_mesh_drawable hierarchy1;//Oiseau
 
 std::list<particle_structure> particles; // Storage of all currently active particles
-std::list<particle_structure> birds; // Storage of all currently active particles
 std::list<particle_structure> neiges; // Storage of all currently active particles
 mesh_drawable sphere;
 mesh_drawable snow;
@@ -128,7 +122,7 @@ int main(int, char* argv[])
 	std::cout << opengl_info_display() << std::endl;;
 
 	imgui_init(window);
-	glfwSetCursorPosCallback(window, mouse_move_callback);
+        glfwSetCursorPosCallback(window, mouse_move_callback);
 	glfwSetWindowSizeCallback(window, window_size_callback);
 	
 	std::cout<<"Initialize data ..."<<std::endl;
@@ -188,7 +182,6 @@ void initialize_data()
         grid.texture = opengl_texture_to_gpu(image_load_png("assets/water.png"));
 
         GLuint const shader_mesh = opengl_create_shader_program(read_text_file("shader/mesh_lights.vert.glsl"),read_text_file("shader/mesh_lights.frag.glsl"));
-	GLuint const shader_uniform_color = opengl_create_shader_program(opengl_shader_preset("single_color_vertex"), opengl_shader_preset("single_color_fragment"));
 
         /** Load a shader that makes fully transparent fragments when alpha-channel of the texture is small */
         GLuint const shader_with_transparency = opengl_create_shader_program( read_text_file("shader/transparency.vert.glsl"), read_text_file("shader/transparency.frag.glsl"));
@@ -233,12 +226,9 @@ void initialize_data()
     /** *************************************************************  **/
 
     billboard_grass = mesh_drawable(mesh_primitive_quadrangle({-0.5,0,0},{0.5,0,0},{0.5,0,1},{-0.5,0,1}));
-            billboard_grass.transform.scale = 0.4f;
-            billboard_grass.transform.translate = {0.5f, 0.5f, 0.0f};
-            billboard_grass.texture = opengl_texture_to_gpu(image_load_png("assets/grass.png"));
-
-    trunk = mesh_drawable(create_tree_trunk());
-    foliage = mesh_drawable(create_tree_foliage());
+    billboard_grass.transform.scale = 0.4f;
+    billboard_grass.transform.translate = {0.5f, 0.5f, 0.0f};
+    billboard_grass.texture = opengl_texture_to_gpu(image_load_png("assets/grass.png"));
 
     street_lamp = mesh_drawable(create_street_lamp());
     mesh torus = mesh_primitive_torus(0.08f, 0.02f, {0,0,0}, {0,0,1}, 20,20);
@@ -260,24 +250,12 @@ void initialize_data()
             GL_MIRRORED_REPEAT /**GL_TEXTURE_WRAP_T*/);
     terrain.texture = texture_image_id;
 
-    image_raw const im2 = image_load_png("assets/trunk.png");
-    GLuint const texture_image_id2 = opengl_texture_to_gpu(im2,
-            GL_MIRRORED_REPEAT /**GL_TEXTURE_WRAP_S*/,
-            GL_MIRRORED_REPEAT /**GL_TEXTURE_WRAP_T*/);
-    trunk.texture = texture_image_id2;
-
-    // create a billboard of flower
-    billboard_flower = mesh_drawable(mesh_primitive_quadrangle({-1,0,0},{1,0,0},{1,0,2},{-1,0,2}));
-    billboard_flower.transform.scale = 0.2f;
-    billboard_flower.transform.translate = {0.5f, 0.5f, 0.0f};
-    billboard_flower.texture = opengl_texture_to_gpu(image_load_png("assets/redflowers.png"));
-
-        tree_position1 = generate_positions_on_terrain(6);
-        tree_position2 = generate_positions_on_terrain(9);
-        tree_position3 = generate_positions_on_terrain(7);
-        tree_position4 = generate_positions_on_terrain(13);
-        grass_position = generate_positions_on_terrain(30);
-        street_lamp_position = generate_positions_on_terrain(3);
+    tree_position1 = generate_positions_on_terrain(6);
+    tree_position2 = generate_positions_on_terrain(9);
+    tree_position3 = generate_positions_on_terrain(7);
+    tree_position4 = generate_positions_on_terrain(13);
+    grass_position = generate_positions_on_terrain(30);
+    street_lamp_position = generate_positions_on_terrain(2);
 
     /** *************************************************************  **/
     /** Trajectoire oiseau  **/
@@ -289,6 +267,7 @@ void initialize_data()
     key_positions = {{-1,1,6}, {0,1,6}, {1,3,8}, {1,6,6}, {2,-4,6}, {-1,1,6}, {2,2,7}, {2,2,6}};
     // Key times
     key_times = {0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f};
+    key_times = 2*key_times;
 
     // Set timer bounds
     //  You should adapt these extremal values to the type of interpolation
@@ -296,38 +275,31 @@ void initialize_data()
     timer.t_max = key_times[6];  // Ends the timer at the last time of the keyframe
     timer.t = timer.t_min;
 
-        /** *************************************************************  **/
-    /** Oiseau  **/
+    /** *************************************************************  **/
+    /** Oiseaux  **/
     /** *************************************************************  **/
 
     hierarchy1 = create_birds();
-    hierarchy2 = create_birds();
 
-
-        /** *************************************************************  **/
+    /** *************************************************************  **/
     /** Goutte à goutte **/
     /** *************************************************************  **/
 
-    float const r = 0.01f; // radius of the sphere
+    float const r = 0.01f; // rayon de la goutte
     sphere = mesh_drawable( mesh_primitive_sphere(r));
     sphere.texture = opengl_texture_to_gpu(image_load_png("assets/water.png"));
 
-        /** *************************************************************  **/
-        /** Flocons de neige**/
-        /** *************************************************************  **/
-
-        float const rayon = 0.02f; // radius of the sphere
-        snow = mesh_drawable( mesh_primitive_sphere(rayon));
-        snow.shading.color = {1.0f,1.0f,1.0f};
-
-        /** *************************************************************  **/
-    /** Boules lumineuses  **/
+    /** *************************************************************  **/
+    /** Flocons de neige**/
     /** *************************************************************  **/
 
-    // Load a new custom shader that take into account spotlights (note the new shader file in shader/ directory)
-    //GLuint const shader_mesh = opengl_create_shader_program(read_text_file("shader/mesh_lights.vert.glsl"),read_text_file("shader/mesh_lights.frag.glsl"));
+    float const rayon = 0.02f; // rayon du flocon
+    snow = mesh_drawable( mesh_primitive_sphere(rayon));
+    snow.shading.color = {1.0f,1.0f,1.0f};
 
-    //initialize the meshes
+    /** *************************************************************  **/
+    /** Boules lumineuses  **/
+    /** *************************************************************  **/
 
     mesh sphere_spotlight_mesh = mesh_primitive_sphere(0.05f);
     sphere_spotlight_mesh.flip_connectivity();
@@ -341,37 +313,35 @@ void initialize_data()
 void display_scene()
 {
 
-        draw(terrain, scene);
-        // Update the current time
-        float const dt = timer.update();
-        float t = timer.t;
+    draw(terrain, scene);
+    // Update the current time
+    float const dt = timer.update();
+    float t = timer.t;
 
 
-        /** *************************************************************  **/
+    /** *************************************************************  **/
     /** Boules lumineuses  **/
     /** *************************************************************  **/
 
 
     // set the values for the spotlights (possibly varying in time)
-        for (size_t k = 0; k < street_lamp_position.size(); ++k)
-        {
-            scene.spotlight_color[k] = {0.8, 0.8, 0.8};
-            scene.spotlight_position[k] = {street_lamp_position[k].x, street_lamp_position[k].y, street_lamp_position[k].z + 1.1f};
-        }
-        //scene.spotlight_color[street_lamp_position.size()-1] = {std::sin(3.14f*(t-0.8f)), std::sin(3.14f*(t-0.15f)), std::sin(3.14f*(t-0.45f))};
-        //scene.spotlight_position[street_lamp_position.size()-1] = {street_lamp_position[street_lamp_position.size()-1].x, street_lamp_position[street_lamp_position.size()-1].y, street_lamp_position[street_lamp_position.size()-1].z + 1.1f};
+    for (size_t k = 0; k < street_lamp_position.size(); ++k)
+    {
+        scene.spotlight_color[k] = {0.75, 0.75, 0.8};
+        scene.spotlight_position[k] = {street_lamp_position[k].x, street_lamp_position[k].y, street_lamp_position[k].z + 1.1f};
+    }
 
     // display the spotlights as small spheres
     for (size_t k = 0; k < scene.spotlight_position.size(); ++k)
     {
-            sphere_spotlight.transform.translate = scene.spotlight_position[k];
-            sphere_spotlight.shading.color = scene.spotlight_color[k];
-            draw(sphere_spotlight, scene);
+        sphere_spotlight.transform.translate = scene.spotlight_position[k];
+        sphere_spotlight.shading.color = scene.spotlight_color[k];
+        draw(sphere_spotlight, scene);
     }
 
     draw(moon,scene);
 
-        /** *************************************************************  **/
+    /** *************************************************************  **/
     /** Arbres, fontaine, statue et lampadaires  **/
     /** *************************************************************  **/
 
@@ -462,71 +432,65 @@ void display_scene()
 
 
         // Compute the interpolated position
-        /*if (t > key_times[5]){
+        if (t > key_times[5]){
 
-            vec3 intermediaire = 2*key_positions[6]-key_positions[5];
-            key_positions[0] = key_positions[5];
-            key_positions[1] = key_positions[6];
-            key_positions[2] = intermediaire;
-            float u = rand_interval(0.1);
-            float v = rand_interval(0,1);
-            key_positions[3] = vec3(evaluate_terrain(u,v).x, evaluate_terrain(u,v).y, evaluate_terrain(u,v).z+
-                                    7.5f + rand_interval(0,2));
-        }
-        else if (t < key_times[2]){
+       key_positions[0] = key_positions[5];
+       key_positions[1] = key_positions[6];
 
-            float u4 = rand_interval(0,1);
-            float v4 = rand_interval(0,1);
-            vec3 pos4 = evaluate_terrain(u4,v4);
-            key_positions[4] = vec3(pos4.x, pos4.y, pos4.z + 7.5f + rand_interval(0,2));
+       float u = rand_interval(0.1);
+       float v = rand_interval(0,1);
 
-            u4 = rand_interval(0.1);
-            v4 = rand_interval(0,1);
-            pos4 = evaluate_terrain(u4,v4);
-            key_positions[5] = vec3(pos4.x, pos4.y, pos4.z + 7.5f + rand_interval(0,2));
+       key_positions[2] = vec3(evaluate_terrain(u,v).x, evaluate_terrain(u,v).y, evaluate_terrain(u,v).z+
+                               7.5f + rand_interval(0,2));
 
-            u4 = rand_interval(0.1);
-            v4 = rand_interval(0,1);
-            pos4 = evaluate_terrain(u4,v4);
-            key_positions[6] = vec3(pos4.x, pos4.y, pos4.z + 7.5f + rand_interval(0,2));
+       u = rand_interval(0.1);
+       v = rand_interval(0,1);
+       key_positions[3] = vec3(evaluate_terrain(u,v).x, evaluate_terrain(u,v).y, evaluate_terrain(u,v).z+
+                               7.5f + rand_interval(0,2));
+       }
+       else if (t < key_times[2]){
 
-            key_positions[7] = key_positions[6];
-        }*/
-        vec3 const p = interpolation(t, key_positions, key_times);
-        //Find the direction of trajectory
-        float const ankl = direction(t, key_positions, key_times, dir);
-        //dir = new_direction(t, key_positions, key_times);
+       float u4 = rand_interval(0,1);
+       float v4 = rand_interval(0,1);
+       vec3 pos4 = evaluate_terrain(u4,v4);
+       key_positions[4] = vec3(pos4.x, pos4.y, pos4.z + 7.5f + rand_interval(0,2));
 
-        /** *************************************************************  **/
-    /** Compute the (animated) transformations applied to the elements **/
+       u4 = rand_interval(0.1);
+       v4 = rand_interval(0,1);
+       pos4 = evaluate_terrain(u4,v4);
+       key_positions[5] = vec3(pos4.x, pos4.y, pos4.z + 7.5f + rand_interval(0,2));
+
+       u4 = rand_interval(0.1);
+       v4 = rand_interval(0,1);
+       pos4 = evaluate_terrain(u4,v4);
+       key_positions[6] = vec3(pos4.x, pos4.y, pos4.z + 7.5f + rand_interval(0,2));
+       key_positions[7] = key_positions[6];
+       }
+
+    /** *************************************************************  **/
+    /** Oiseaux **/
     /** *************************************************************  **/
 
-        // Bird trajectory
-        hierarchy1["body"].transform.translate = p;
-        hierarchy1["body"].transform.rotate = rotation({0,0,1}, ankl);
+    vec3 const p = interpolation(t, key_positions, key_times);
+    //Find the direction of trajectory
+    float const ankl = direction(t, key_positions, key_times, dir);
 
-        // Rotation of wings
-   hierarchy1["shoulder_left"].transform.rotate = rotation({0,0.7,0}, 0.8*std::sin(-5.5*3.14f*(t-0.15f)) );
-   hierarchy1["arm_left"].transform.rotate = rotation({0,1,0}, 0.8*std::sin(-5.5*3.14f*(t-0.15f)) );
-   hierarchy1["shoulder_right"].transform.rotate = rotation({0,0.7,0}, 0.8*std::sin(5.5*3.14f*(t-0.15f)));
-   hierarchy1["arm_right"].transform.rotate = rotation({0,1,0}, std::sin(5.5*3.14f*(t-0.6f)) );
+    // Bird trajectory
+    hierarchy1["body"].transform.translate = p;
+    hierarchy1["body"].transform.rotate = rotation({0,0,1}, ankl);
 
-   hierarchy2["shoulder_left"].transform.rotate = rotation({0,0.7,0}, 0.8*std::sin(-5.5*3.14f*(t-0.15f)) );
-   hierarchy2["arm_left"].transform.rotate = rotation({0,1,0}, 0.8*std::sin(-5.5*3.14f*(t-0.15f)) );
-   hierarchy2["shoulder_right"].transform.rotate = rotation({0,0.7,0}, 0.8*std::sin(5.5*3.14f*(t-0.15f)));
-   hierarchy2["arm_right"].transform.rotate = rotation({0,1,0}, std::sin(5.5*3.14f*(t-0.6f)) );
+    // Rotation of wings
+    hierarchy1["shoulder_left"].transform.rotate = rotation({0,0.7,0}, 0.8*std::sin(-5.5*3.14f*(t-0.15f)));
+    hierarchy1["shoulder_right"].transform.rotate = rotation({0,0.7,0}, 0.8*std::sin(5.5*3.14f*(t-0.15f)));
 
    // update the global coordinates
-        hierarchy1.update_local_to_global_coordinates();
-        hierarchy2.update_local_to_global_coordinates();
+   hierarchy1.update_local_to_global_coordinates();
 
-        // display the hierarchy
-        if(user.gui.display_surface)
-                draw(hierarchy1, scene);
-        if(user.gui.display_wireframe)
-                draw_wireframe(hierarchy1, scene);
+   // display the hierarchy
+   if(user.gui.display_surface)
+           draw(hierarchy1, scene);
 
-        /** *************************************************************  **/
+    /** *************************************************************  **/
     /** Goutte à goutte  **/
     /** *************************************************************  **/
 
@@ -577,7 +541,7 @@ void display_scene()
         draw(sphere, scene);
     }
 
-        /** *************************************************************  **/
+    /** *************************************************************  **/
     /** Flocons de neige  **/
     /** *************************************************************  **/
 
@@ -587,7 +551,7 @@ void display_scene()
                     const float theta = rand_interval(0,2*pi);
                     const vec3 v0 = vec3( std::sin(alpha)*1.0f, std::cos(alpha)*1.0f, -0.5f);
                     const float range = rand_interval(0,11.0);
-                    const vec3 p0 = vec3(0.5f + range*std::cos(theta)*1.0f, 0.5f + range*std::sin(theta)*1.0f, 10.0f);
+                    const vec3 p0 = vec3(0.5f + range*std::cos(theta)*1.0f, 0.5f + range*std::sin(theta)*1.0f, 20.0f);
                     neiges.push_back({p0,v0});
             }
 
@@ -619,14 +583,14 @@ void display_scene()
         }
 
 
-        /** *************************************************************  **/
+    /** *************************************************************  **/
     /** Fontaine  **/
     /** *************************************************************  **/
 
     scene.t = timer.t; // send the current time to the shader as a uniform parameter
     draw(grid, scene);
 
-        /** *************************************************************  **/
+    /** *************************************************************  **/
     /** Touffes d'herbe  **/
     /** *************************************************************  **/
 
@@ -653,11 +617,7 @@ void display_scene()
 
 void display_interface()
 {
-    ImGui::SliderFloat("Time", &timer.t, timer.t_min, timer.t_max);
     ImGui::SliderFloat("Time scale", &timer.scale, 0.0f, 2.0f);
-    ImGui::Checkbox("Frame", &user.gui.display_frame);
-    ImGui::SliderFloat("Fog falloff", &scene.fog_falloff, 0, 0.05f, "%0.5f", 2.0f);
-
 
 }
 
@@ -695,7 +655,6 @@ void opengl_uniform(GLuint shader, scene_environment const& current_scene)
         opengl_uniform(shader, "view", scene.camera.matrix_view());
         opengl_uniform(shader, "light", scene.light, false);
         opengl_uniform(shader, "time", scene.t, false); // add this parameter as uniform to the shader
-        //opengl_uniform(shader, "fog_falloff", current_scene.fog_falloff);
 
 
         // Adapt the uniform values send to the shader
